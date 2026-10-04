@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func Postman(
+func postman(
 	ctx context.Context,
 	wg *sync.WaitGroup,
 	transferPoint chan<- string,
@@ -17,17 +17,22 @@ func Postman(
 	defer wg.Done()
 
 	for {
+		fmt.Println("I'm postman", id, "I took the letter!")
 		select {
 		case <-ctx.Done():
 			fmt.Println("I'm postman", id, "my workday is over")
 			return
-		default:
-			fmt.Println("I'm postman", id, "I took the letter!")
-			time.Sleep(1 * time.Second)
+		case <-time.After(1 * time.Second):
 			fmt.Println("I'm postman", id, "I delivered the letter to the post office: ", mail)
+		}
 
-			transferPoint <- mail
-			fmt.Println("I'm postman", id, "I handed the letter to the post office: ", mail)
+		select {
+			case <-ctx.Done():
+			fmt.Println("I'm postman", id, "my workday is over")
+			return
+
+			case transferPoint <- mail:
+				fmt.Println("I'm postman", id, "I handed the letter to the post office: ", mail)
 		}
 	}
 }
