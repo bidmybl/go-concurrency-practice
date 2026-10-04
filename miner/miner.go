@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func Miner(
+func miner(
 	ctx context.Context,
 	wg *sync.WaitGroup,
 	transferPoint chan<- int,
@@ -17,16 +17,24 @@ func Miner(
 	defer wg.Done()
 
 	for {
+		fmt.Println("I'm miner", id, "I'm starting to mine coal!")
+
 		select {
 		case <-ctx.Done():
 			fmt.Println("I'm miner", id, "my workday is over")
 			return
-		default:
-			fmt.Println("I'm miner", id, "I'm starting to mine coal!")
+
+		case <-time.After(1 * time.Second):
 			time.Sleep(1 * time.Second)
 			fmt.Println("I'm miner", id, "Coal mined: ", coalPerMining)
+		}
 
-			transferPoint <- coalPerMining
+		select {
+		case <-ctx.Done():
+			fmt.Println("I'm miner", id, "my workday is over")
+			return
+
+		case transferPoint <- coalPerMining:
 			fmt.Println("I'm miner", id, "Coal delivered: ", coalPerMining)
 		}
 	}
